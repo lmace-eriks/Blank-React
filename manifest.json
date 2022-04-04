@@ -1,9 +1,9 @@
 {
-  "vendor": "shredshop",
-  "name": "renameme",
+  "vendor": "eriksbikeshop",
+  "name": "infohub",
   "version": "1.0.0",
-  "title": "RenameMe",
-  "description": "RenameMe component",
+  "title": "InfoHub",
+  "description": "InfoHub component",
   "defaultLocale": "pt-BR",
   "builders": {
     "messages": "1.x",

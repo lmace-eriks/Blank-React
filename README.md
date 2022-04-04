@@ -1,3 +1,3 @@
-# RenameMe
+# InfoHub
 
 App Description
