@@ -16,27 +16,14 @@ interface propStyles {
 }
 
 const PostCard: StorefrontFunctionComponent<PostCardProps> = ({ title, image, url, propStyles }) => {
-    const toolTipRef = useRef<HTMLParagraphElement>(null!);
-
-    const showToolTip = () => {
-        // @ts-expect-error
-        if (toolTipRef.current.innerHTML.length > 30) {
-            // @ts-expect-error
-            toolTipRef.current.style.display = "block";
-        }
-    }
-
-    const hideToolTip = () => {
-        // @ts-expect-error
-        toolTipRef.current.style.display = "none";
-    }
-
     return (
-        <a href={url} style={propStyles.postLinkStyle} className={styles.postLink} onMouseOver={showToolTip} onMouseOut={hideToolTip}>
+        <a href={url} style={propStyles.postLinkStyle} target="_blank" rel="noreferrer" className={styles.postLink}>
             <div style={propStyles.postCardStyle} className={styles.postCard}>
-                <p className={styles.postTitle}>{title}</p>
-                <p ref={toolTipRef} className={styles.toolTip}>{title}</p>
-                <img src={image} className={styles.postImage} />
+                <div style={{ backgroundImage: `url(${image})` }} className={styles.titleContainer}>
+                    <div className={styles.titleWrapper}>
+                        <p className={styles.postTitle}>{title}</p>
+                    </div>
+                </div>
             </div>
         </a>
     )
