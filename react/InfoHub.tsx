@@ -9,12 +9,12 @@ import styles from "./styles.css";
 
 interface InfoHubProps {
   keywordsV2: Array<TopicAndPosts>
-  uglyList: Array<PrettyTitle>
 }
 
 interface TopicAndPosts {
   topic: string
   key: number
+  position?: number
   posts: Array<PostObject>
 }
 
@@ -29,12 +29,7 @@ interface PostObject {
   url: string
 }
 
-interface PrettyTitle {
-  ugly: string;
-  pretty: string;
-}
-
-const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2, uglyList }) => {
+const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2 }) => {
   const postName: string = "Articles";
   const appWrapperRef = useRef<HTMLDivElement>(null!);
   const [infoTopic, setInfoTopic] = useState<string | null>(null);
@@ -77,8 +72,8 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2, uglyLi
   let displayType: string = "";
   let contentType: string = "";
   if (allPosts) {
-    displayType = allPosts.length <= numberOfGridColums ? `flex` : `grid`;
-    contentType = allPosts.length <= numberOfGridColums ? `space-around` : ``;
+    displayType = (allPosts.length <= numberOfGridColums) ? `flex` : `grid`;
+    contentType = (allPosts.length <= numberOfGridColums) ? `space-around` : ``;
   }
 
   const postGridSyle: CSSProperties = {
@@ -98,19 +93,15 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2, uglyLi
   }
 
   let priorityPostsLocation: number | undefined = undefined;
-  let defaultPostsLocation: number | undefined = undefined;
   let priorityPosts: Array<PostObject> = [];
   for (let i = 0; i < keywordsV2.length; i++) {
     if (keywordsV2[i].topic === "Priority") priorityPostsLocation = i;
-    if (keywordsV2[i].topic === "Default") defaultPostsLocation = i;
   }
 
   if (typeof priorityPostsLocation === "number") priorityPosts = keywordsV2[priorityPostsLocation].posts;
 
   useEffect(() => {
     console.clear();
-
-    console.log(uglyList);
 
     // @ts-expect-error
     const currentUserURL: string = window.location.href.split(".com/")[1];
@@ -147,10 +138,21 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2, uglyLi
       const stringFoundBoolean = topic.test(currentUserURL);
 
       if (stringFoundBoolean) {
-        // If true, populate Array with topic and Array of posts --
+        // If true, populate array with topic, key and posts --
         keywordsFoundInURL.push({ topic: keywordsToSearchFor[i].topic, key: keywordsToSearchFor[i].key, posts: keywordsV2[keywordsToSearchFor[i].key].posts });
       }
     }
+
+    // Populate array with position the keywords were found in --
+    for (let i = 0; i < keywordsFoundInURL.length; i++) {
+      const searchURL = currentUserURL.toLowerCase();
+      keywordsFoundInURL[i].position = searchURL.indexOf(keywordsFoundInURL[i].topic.toLowerCase());
+    }
+
+    // Sort array by keyword position then reverse --
+    keywordsFoundInURL.sort((a, b) => ((a.position || 0) > (b.position || 1)) ? 1 : -1).reverse();
+
+    console.log(keywordsFoundInURL);
 
     if (keywordsFoundInURL.length > 0) {
       // Empty Posts to Show Array --
@@ -167,20 +169,7 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2, uglyLi
         infoTopicString = infoTopicString === "" ? keywordsFoundInURL[i].topic : infoTopicString + " and " + keywordsFoundInURL[i].topic;
       }
 
-      // Format Ugly Titles List --
-      const sortArray = (x: PrettyTitle, y: PrettyTitle) => {
-        if (x.ugly < y.ugly) return -1;
-        if (x.ugly > y.ugly) return 1;
-        return 0;
-      };
-      const sortedUglyList: Array<PrettyTitle> = uglyList.sort(sortArray);
-
-      // Catching Unsightly Edge Cases --
-      let topicStringEdgeRemoval: string = "";
-      for (let i = 0; i < sortedUglyList.length; i++) {
-        topicStringEdgeRemoval = infoTopicString.replace(sortedUglyList[i].ugly, sortedUglyList[i].pretty);
-        infoTopicString = topicStringEdgeRemoval;
-      }
+      // console.log(keywordsFoundInURL);
 
       // Removed duplicates from postsToShow Array based on their title --
       postsToShow = postsToShow.filter((value, index, self) =>
@@ -196,13 +185,9 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2, uglyLi
         unmountToMountArray(postsToShow);
       }
     } else {
-      // If no keywords are found in URL, set topic and posts to default --
-      if (typeof defaultPostsLocation === "number") {
-        if (infoTopic != keywordsV2[defaultPostsLocation].topic) {
-          setInfoTopic(keywordsV2[defaultPostsLocation].topic);
-          unmountToMountArray(keywordsV2[defaultPostsLocation].posts, true);
-        }
-      }
+      // If no keywords are found in URL, do not render --
+      setInfoTopic(null);
+      setAllPosts(undefined);
     }
   });
 
@@ -212,32 +197,33 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2, uglyLi
     setappExpanded(false);
 
     setTimeout(() => {
-      if (noKeywordsFound) { // Do not render (04/19/2022) - LM
-        // Show Priority and Defaults - LM
-        // if (typeof priorityPostsLocation === "number" && typeof defaultPostsLocation === "number") {
-        //   setAllPosts(priorityPosts.concat(keywordsV2[defaultPostsLocation].posts));
-        // } else if (typeof priorityPostsLocation === undefined && typeof defaultPostsLocation === "number") {
-        //   setAllPosts(keywordsV2[defaultPostsLocation].posts);
-        // }
+      if (noKeywordsFound) {
+        // Do not render - LM
+        setAllPosts(undefined);
+        return;
       } else {
-        // Show Priority, Chosen Topic(s) and Defaults - LM
+        // Show Priority and Chosen Topic(s) - LM
         if (windowWidth <= pageBreakWidth) {
           // Mobile Rules --
-          if (typeof priorityPostsLocation === "number" && typeof defaultPostsLocation === "number") {
-            let truncateArray: Array<PostObject> = priorityPosts.concat(postsToShow.concat(keywordsV2[defaultPostsLocation].posts));
-            truncateArray.length = mobileMaximumPosts;
+          if (typeof priorityPostsLocation === "number") {
+            const truncateArray: Array<PostObject> = priorityPosts.concat(postsToShow);
+            if (truncateArray.length > mobileMaximumPosts) truncateArray.length = mobileMaximumPosts;
             setAllPosts(truncateArray);
-          } else if (typeof priorityPostsLocation === "undefined" && typeof defaultPostsLocation === "number") {
-            let truncateArray: Array<PostObject> = postsToShow.concat(keywordsV2[defaultPostsLocation].posts);
-            truncateArray.length = mobileMaximumPosts;
+          } else if (typeof priorityPostsLocation === "undefined") {
+            const truncateArray: Array<PostObject> = postsToShow;
+            if (truncateArray.length > mobileMaximumPosts) truncateArray.length = mobileMaximumPosts;
             setAllPosts(truncateArray);
           }
         } else {
           // Desktop Rules --
-          if (typeof priorityPostsLocation === "number" && typeof defaultPostsLocation === "number") {
-            setAllPosts(priorityPosts.concat(postsToShow.concat(keywordsV2[defaultPostsLocation].posts)));
-          } else if (typeof priorityPostsLocation === "undefined" && typeof defaultPostsLocation === "number") {
-            setAllPosts(postsToShow.concat(keywordsV2[defaultPostsLocation].posts));
+          if (typeof priorityPostsLocation === "number") {
+            const truncateArray: Array<PostObject> = priorityPosts.concat(postsToShow);
+            if (truncateArray.length > desktopMaximumPosts) truncateArray.length = desktopMaximumPosts;
+            setAllPosts(truncateArray);
+          } else if (typeof priorityPostsLocation === "undefined") {
+            const truncateArray: Array<PostObject> = postsToShow;
+            if (truncateArray.length > desktopMaximumPosts) truncateArray.length = desktopMaximumPosts;
+            setAllPosts(truncateArray);
           }
         }
       }
@@ -246,9 +232,7 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2, uglyLi
 
   useEffect(() => {
     // Toggles visibility of the See More / See Less Button - LM
-    if (allPosts) {
-      setSeeMoreSeeLessVisible(allPosts.length <= numberOfGridColums ? false : true);
-    }
+    if (allPosts) setSeeMoreSeeLessVisible(allPosts.length <= numberOfGridColums ? false : true)
   }, [allPosts]);
 
   const handleSeeMore = () => {
