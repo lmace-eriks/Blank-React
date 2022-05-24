@@ -113,7 +113,7 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2 }) => {
     const singleTopics: Array<TopicAndKey> = [];
     const multipleTopics: Array<TopicAndKey> = [];
 
-    // Find All topics with multiple keywords and populate multipleTopics Array --
+    // Find All topics with multiple keywords and populate arrays --
     for (let i = 0; i < keywordsV2.length; i++) {
       const topicFromBackend: string = keywordsV2[i].topic;
       const topicListFromBackend: Array<string> = topicFromBackend.split(", ");
@@ -139,18 +139,25 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2 }) => {
 
       if (stringFoundBoolean) {
         // If true, populate array with topic, key and posts --
-        keywordsFoundInURL.push({ topic: keywordsToSearchFor[i].topic, key: keywordsToSearchFor[i].key, posts: keywordsV2[keywordsToSearchFor[i].key].posts });
+        const tempObject: TopicAndPosts = {
+          topic: keywordsToSearchFor[i].topic,
+          key: keywordsToSearchFor[i].key,
+          posts: keywordsV2[keywordsToSearchFor[i].key].posts
+        }
+
+        keywordsFoundInURL.push(tempObject);
       }
     }
 
-    // Populate array with position the keywords were found in --
+    // Populate array with position the keywords were found at --
     for (let i = 0; i < keywordsFoundInURL.length; i++) {
       const searchURL = currentUserURL.toLowerCase();
       keywordsFoundInURL[i].position = searchURL.indexOf(keywordsFoundInURL[i].topic.toLowerCase());
     }
 
     // Sort array by keyword position then reverse --
-    keywordsFoundInURL.sort((a, b) => ((a.position || 0) > (b.position || 1)) ? 1 : -1).reverse();
+    // More useful information is typically found towards the end of a URL, so we want to show it first --
+    keywordsFoundInURL.sort((a, b) => ((a.position ?? 0) > (b.position ?? 1)) ? 1 : -1).reverse();
 
     console.log(keywordsFoundInURL);
 
@@ -168,8 +175,6 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2 }) => {
         // Populate InfoTopicString with all Topic Found in URL --
         infoTopicString = infoTopicString === "" ? keywordsFoundInURL[i].topic : infoTopicString + " and " + keywordsFoundInURL[i].topic;
       }
-
-      // console.log(keywordsFoundInURL);
 
       // Removed duplicates from postsToShow Array based on their title --
       postsToShow = postsToShow.filter((value, index, self) =>
@@ -199,6 +204,7 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2 }) => {
     setTimeout(() => {
       if (noKeywordsFound) {
         // Do not render - LM
+        setInfoTopic(null);
         setAllPosts(undefined);
         return;
       } else {
