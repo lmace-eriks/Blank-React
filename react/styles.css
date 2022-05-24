@@ -84,14 +84,13 @@
     }
 }
 
-
 .titleContainer {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
     height: 100%;
-    border: 1px solid black;
+    border: 1px solid #d1d1d1;
     border-radius: 0.5rem;
     background-size: cover;
     background-position: center;
@@ -148,7 +147,7 @@
     aspect-ratio: 4 / 3;
     object-fit: cover;
     border-radius: 0.25rem;
-    border: 1px solid black;
+    border: 1px solid #d1d1d1;
 }
 
 .centerRow {

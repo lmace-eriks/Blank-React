@@ -49,7 +49,7 @@ const InfoHub: StorefrontFunctionComponent<InfoHubProps> = ({ keywordsV2 }) => {
   const heightOfPosts: number = 6;
   const gridRowGap: number = 1;
   const heightOfPostRow: number = heightOfPosts;
-  const infoTopicFontSize: number = 1.5;
+  const infoTopicFontSize: number = 1.25;
   const infoTopicMarginBottom: number = 0.5;
   const numberOfGridColums: number = windowWidth >= pageBreakWidth ? desktopColumns : mobileColumns;
   const heightOfSeeMoreSeeLessButton: number = seeMoreSeeLessVisible ? 1.5 : 0;
